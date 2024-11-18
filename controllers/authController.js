@@ -35,12 +35,6 @@ class AuthController {
                 });
             }
         } catch (error) {
-            if (error.status) {
-                return res.status(error.status).json({
-                    status: 'failed',
-                    message: error.message,
-                });
-            }
             next(error);
         }
     }
@@ -75,12 +69,6 @@ class AuthController {
                 }
             }
         } catch (error) {
-            if (error.status) {
-                return res.status(error.status).json({
-                    status: 'failed',
-                    message: error.message,
-                });
-            }
             next(error);
         }
     }
@@ -103,12 +91,6 @@ class AuthController {
         try {
             res.render('register');
         } catch (error) {
-            if (error.status) {
-                return res.status(error.status).json({
-                    status: 'failed',
-                    message: error.message,
-                });
-            }
             next(error);
         }
     }
@@ -117,17 +99,11 @@ class AuthController {
         try {
             res.render('confirm-email');
         } catch (error) {
-            if (error.status) {
-                return res.status(error.status).json({
-                    status: 'failed',
-                    message: error.message,
-                });
-            }
             next(error);
         }
     }
 
-    static async forgotPassword(req, res, next) {
+    static async verifyEmail(req, res, next) {
         try {
             let { email } = req.body;
             let user = await prisma.user.findUnique({
@@ -157,23 +133,41 @@ class AuthController {
                     from: process.env.MAIL_EMAIL,
                     to: email,
                     subject: 'Reset Password',
-                    html: `<a href="http://localhost:3000/reset-password?token=${token}">Reset Password</a>`
+                    html: `<a href="http://localhost:3000/forgot-password/${token}">Klik disini untuk reset password</a>`
                 }
 
                 transporter.sendMail(mailOptions, (err, info) => {
                     if (err) {
                         throw { error: 'Internal Server Error', status: 500, message: 'Gagal mengirim email' };
                     } else {
-                        res.status(200).json({
-                            error: null,
-                            message: 'Email berhasil dikirim',
-                            status: 200,
-                            token: token,
-                            // data: info
-                        });
+                        // res.status(200).json({
+                        //     message: 'Email berhasil dikirim',
+                        //     status: 200,
+                        //     token: token,
+                        // });
+                        res.redirect('/forgot-password/' + token);
                     }
                 });
             }
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    static async forgotPassword(req, res, next) {
+        try {
+            const { token } = req.params;
+
+            if (!token) {
+                throw { error: 'Bad Request', status: 400, message: 'Token diperlukan' };
+            }
+
+            const decoded = jwt.verify(token, JWT_SECRET);
+            if (!decoded || !decoded.id) {
+                throw { error: 'Unauthorized', status: 401, message: 'Token tidak valid' };
+            }
+
+            res.render('new-password', { token });
         } catch (error) {
             if (error.status) {
                 return res.status(error.status).json({
@@ -181,6 +175,37 @@ class AuthController {
                     message: error.message,
                 });
             }
+            next(error);
+        }
+    }
+
+    static async resetPassword(req, res, next) {
+        try {
+            const { password, token } = req.body;
+
+            if (!token || !password) {
+                throw { error: 'Bad Request', status: 400, message: 'Token dan password diperlukan' };
+            }
+
+            const decoded = jwt.verify(token, JWT_SECRET);
+            if (!decoded || !decoded.id) {
+                throw { error: 'Unauthorized', status: 401, message: 'Token tidak valid' };
+            }
+
+            const hashedPassword = bcrypt.hashSync(password, BCRYPT_SALT);
+
+            const updateUser = await prisma.user.update({
+                where: { id: decoded.id },
+                data: { password: hashedPassword },
+            });
+
+            res.status(200).json({
+                error: null,
+                message: 'Password berhasil direset',
+                status: 200,
+                data: updateUser,
+            });
+        } catch (error) {
             next(error);
         }
     }

@@ -1,7 +1,7 @@
 function errorHandler(err, req, res, next) {
     console.error(err.stack);
 
-    if (err.status) {
+    if (err.status != 500) {
         return res.status(err.status).json({
             status: 'failed',
             message: err.message,
