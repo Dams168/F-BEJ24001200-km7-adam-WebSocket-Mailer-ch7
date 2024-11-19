@@ -30,10 +30,10 @@
   const socket = io();
 
   const notification = document.getElementById("notification");
+  const form = document.getElementById("form-register");
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
-    const form = document.getElementById("form-register");
     const name = document.getElementById("name").value;
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
