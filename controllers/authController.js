@@ -28,8 +28,7 @@ class AuthController {
                     }
                 })
                 res.status(201).json({
-                    error: null,
-                    message: 'User berhasil dibuat',
+                    message: 'Register berhasil, silahkan login',
                     status: 201,
                     data: createUser
                 });
@@ -145,7 +144,8 @@ class AuthController {
                         //     status: 200,
                         //     token: token,
                         // });
-                        res.redirect('/forgot-password/' + token);
+                        // res.redirect('/forgot-password/' + token);
+                        res.redirect('/confirm-email');
                     }
                 });
             }
@@ -200,8 +200,7 @@ class AuthController {
             });
 
             res.status(200).json({
-                error: null,
-                message: 'Password berhasil direset',
+                message: 'Password berhasil direset, silahkan login kembali',
                 status: 200,
                 data: updateUser,
             });

@@ -4,6 +4,7 @@ const Sentry = require("@sentry/node");
 const express = require('express');
 const errorHandler = require('./middleware/errorHandler');
 const AuthRoutes = require('./routes/authRoutes');
+const { Server } = require("socket.io");
 
 const app = express();
 const port = 3000;
@@ -21,11 +22,14 @@ app.get('/', (req, res) => {
 
 app.use(errorHandler);
 
-// app.get("/debug-sentry", function mainHandler(req, res) {
-//     throw new Error("My first Sentry error!");
-// });
-
-
-app.listen(port, () => {
+const server = app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
+
+const io = new Server(server);
+
+io.on('connection', (socket) => {
+    socket.on('notification', (data) => {
+        io.emit('notification', data);
+    });
+})
