@@ -60,7 +60,6 @@ class AuthController {
                     });
 
                     res.status(200).json({
-                        error: null,
                         message: 'Login berhasil',
                         status: 200,
                         token: accessToken
@@ -76,12 +75,6 @@ class AuthController {
         try {
             res.render('login');
         } catch (error) {
-            if (error.status) {
-                return res.status(error.status).json({
-                    status: 'failed',
-                    message: error.message,
-                });
-            }
             next(error);
         }
     }
@@ -169,12 +162,6 @@ class AuthController {
 
             res.render('new-password', { token });
         } catch (error) {
-            if (error.status) {
-                return res.status(error.status).json({
-                    status: 'failed',
-                    message: error.message,
-                });
-            }
             next(error);
         }
     }
