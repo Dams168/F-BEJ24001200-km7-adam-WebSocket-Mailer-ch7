@@ -1,5 +1,9 @@
+require('../config/instrument');
+const Sentry = require('@sentry/node');
+
 function errorHandler(err, req, res, next) {
-    console.error(err.stack);
+    // console.error(err.stack);
+    Sentry.captureException(err);
 
     if (err.status != 500) {
         return res.status(err.status).json({
